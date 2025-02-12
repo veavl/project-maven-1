@@ -14,12 +14,40 @@
     </properties>
 
     <dependencies>
+        <!-- Пакет с утилитарными классами для классов из иерархии java.lang -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.12.0</version>
+        </dependency>
+
+        <!-- Зависимость для управления JavaFX -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>18.0.1</version>
+        </dependency>
+
+        <!-- javarush - По этой зависимости отдельное задание -->
+        <dependency>
+            <groupId>com.javarush</groupId>
+            <artifactId>desktop-game-engine</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <!-- Основной пакет для тестового двигателя JUnit Jupiter -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.8.2</version>
+            <scope>test</scope>
+        </dependency>
 
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Usual compilation -->
+            <!-- Usual compilation - it was - NO Change -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -29,7 +57,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Run java-fx app over Maven -->
+            <!-- Run java-fx app over Maven - it was-->
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
@@ -38,7 +66,75 @@
                     <mainClass>com.javarush.games.racer.RacerGame</mainClass>
                 </configuration>
             </plugin>
+
+            <!-- Для Манифеста - какой класс является точкой входа-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>                                                                          <!-- создание сгенерированного манифеста на основе мэйн-класса -->
+                            <addClasspath>true</addClasspath>
+                            <mainClass>org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader</mainClass>    <!-- указывает на главный исполняемый класс -->
+                        </manifest>
+                        <manifestEntries>                                                                   <!-- позволяет добавлять собственные записи в манифест -->
+                            <Rsrc-Main-Class>com.javarush.games.racer.RacerGame</Rsrc-Main-Class>           <!-- прописывается стартовый класс приложения -->
+                            <classpathPrefix>lib/</classpathPrefix>                                         <!-- указывает префикс для всех зависимых JAR-файлов -->
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>3.0.0</version>
+            </plugin>
+
+            <!-- ЗАПУСК ТЕСТОВ -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/StrangeTest.java</exclude>                                              <!-- ИСКЛЮЧИТЬ ТЕСТ -->
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <!-- Плагин копирования зависимостей -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.6.1</version>
+                <configuration>                                                                 <!-- копирование библиотек в директорию -->
+                    <outputDirectory>${project.build.directory}/dependency</outputDirectory>
+                    <includeScope>compile</includeScope>                        <!-- Фильтр: завис-ти, к-рые НЕ/попадут в /dependency, например, не включая scope test) -->
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>                                                  <!-- плагин будет вызван во время фазы сборки -->
+                        <goals>
+                            <goal>copy-dependencies</goal>                                      <!-- цель -> копировать зависимости проекта -->
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
+
+        <resources>
+            <resource>
+                <directory>${project.build.directory}/lib</directory>                        <!-- куда будут копироваться зависимости во время сборки Maven-проекта -->
+                <includes>
+                    <include>*.jar</include>                                                 <!-- в сборку нужно включить все файлы .jar из указанной директории -->
+                </includes>
+            </resource>
+        </resources>
+
     </build>
 
 </project>
